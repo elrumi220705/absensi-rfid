@@ -19,6 +19,7 @@ class Peserta extends Model
         'jenis_kelamin',    // 'L' / 'P'
         'tanggal_daftar',   // DATE
         'foto',             // path foto profil
+        'jadwal_id',        // relasi ke jadwal (baru)
     ];
 
     protected $casts = [
@@ -34,6 +35,12 @@ class Peserta extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Murid -> Jadwal
+    public function jadwal()
+    {
+        return $this->belongsTo(Jadwal::class);
     }
 
     // ========= Helpers / Scopes =========
