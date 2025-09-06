@@ -15,7 +15,8 @@ class PesertaController extends Controller
     {
         $kelasFilter = $request->query('kelas');
 
-        $peserta = Peserta::where('user_id', Auth::id())
+        $peserta = Peserta::with('account') // eager-load akun agar kolom "Akun Siswa" jalan tanpa N+1
+            ->where('user_id', Auth::id())
             ->when($kelasFilter, fn ($q) => $q->where('kelas', $kelasFilter))
             ->orderBy('nama')
             ->paginate(20)
@@ -73,6 +74,14 @@ class PesertaController extends Controller
         Peserta::create($data);
 
         return redirect()->route('peserta.index')->with('success', 'Murid berhasil ditambahkan.');
+    }
+
+    public function show($id)
+    {
+        // TAMPIL DETAIL MURID + RELASI AKUN
+        $peserta = Peserta::with('account')->where('user_id', Auth::id())->findOrFail($id);
+
+        return view('peserta.show', compact('peserta'));
     }
 
     public function edit($id)

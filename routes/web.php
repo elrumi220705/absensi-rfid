@@ -6,11 +6,10 @@ use App\Http\Controllers\MateriController;
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\PesertaController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\JadwalController; // <-- tambah ini
+use App\Http\Controllers\JadwalController;
+use App\Http\Controllers\SiswaAccountController; // <— tambahkan
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+Route::get('/', fn () => redirect()->route('login'));
 
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
@@ -19,6 +18,7 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth')->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('peserta', PesertaController::class);
@@ -30,8 +30,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/absensi/scan/{materi}', [AbsensiController::class, 'scan'])->name('absensi.scan');
     Route::get('/absensi/export/{materi}', [AbsensiController::class, 'export'])->name('absensi.export');
 
-    // ====== Fitur Jadwal (baru) ======
+    // Jadwal
     Route::resource('jadwal', JadwalController::class);
+
+    // Buat akun login siswa (admin)
+    Route::post('/peserta/{id}/akun', [SiswaAccountController::class, 'store'])
+        ->name('siswa.account.store');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

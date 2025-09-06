@@ -15,11 +15,11 @@ class Peserta extends Model
         'user_id',
         'id_rfid',
         'nama',
-        'kelas',            // contoh: "X-IPA 1"
-        'jenis_kelamin',    // 'L' / 'P'
-        'tanggal_daftar',   // DATE
-        'foto',             // path foto profil
-        'jadwal_id',        // relasi ke jadwal (baru)
+        'kelas',         // contoh: "X-IPA 1"
+        'jenis_kelamin', // 'L'/'P'
+        'tanggal_daftar',
+        'foto',
+        'jadwal_id',     // relasi ke jadwal (opsional)
     ];
 
     protected $casts = [
@@ -37,6 +37,18 @@ class Peserta extends Model
         return $this->belongsTo(User::class);
     }
 
+    // Akun login siswa
+    public function account()
+    {
+        return $this->hasOne(SiswaAccount::class, 'peserta_id');
+    }
+
+    // (opsional) alias agar kompatibel dengan kode lama
+    public function akunSiswa()
+    {
+        return $this->account();
+    }
+
     // Murid -> Jadwal
     public function jadwal()
     {
@@ -52,7 +64,6 @@ class Peserta extends Model
         return $query;
     }
 
-    // Label ramah UI dari kode 'L'/'P'
     public function getJenisKelaminLabelAttribute(): string
     {
         return match (strtoupper((string) $this->jenis_kelamin)) {
@@ -62,7 +73,6 @@ class Peserta extends Model
         };
     }
 
-    // URL Foto Profil (fallback default kalau null)
     public function getFotoUrlAttribute(): string
     {
         if ($this->foto) {
