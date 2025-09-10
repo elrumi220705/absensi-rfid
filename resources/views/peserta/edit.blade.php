@@ -1,4 +1,3 @@
-{{-- resources/views/peserta/edit.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -51,8 +50,6 @@
             <p class="mt-1 text-xs text-gray-500">Bisa di-scan atau diketik manual.</p>
             @error('id_rfid') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
-
-          {{-- Nama --}}
           <div>
             <label for="nama" class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
             <input
@@ -66,37 +63,44 @@
             >
             @error('nama') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
-
-          {{-- Kelas (datalist seperti create) --}}
+          <div>
+            <label for="jadwal_id" class="block text-sm font-medium text-gray-700 mb-2">Jadwal Kelas</label>
+            <select
+              id="jadwal_id"
+              name="jadwal_id"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Pilih Jadwal</option>
+              @foreach(($daftarJadwal ?? []) as $j)
+                <option
+                  value="{{ $j->id }}"
+                  data-kelas="{{ $j->nama }}"
+                  {{ (string) old('jadwal_id', $selectedJadwalId ?? '') === (string) $j->id ? 'selected' : '' }}>
+                  {{ $j->nama }}
+                </option>
+              @endforeach
+            </select>
+            @error('jadwal_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+            <p class="mt-1 text-xs text-gray-500">Pilih jadwal; kolom "Kelas" akan terisi otomatis.</p>
+          </div>
           <div>
             <label for="kelas" class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
             <input
               type="text"
               id="kelas"
               name="kelas"
-              list="kelasList"
               value="{{ old('kelas', $peserta->kelas) }}"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Contoh: VII-A, X IPA 1, dll"
+              readonly
+              class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none"
+              placeholder="Akan terisi otomatis dari Jadwal"
             >
-            <datalist id="kelasList">
-              @foreach(($daftarKelas ?? []) as $kelas)
-                <option value="{{ $kelas }}"></option>
-              @endforeach
-            </datalist>
             @error('kelas') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
-
-          {{-- Jenis Kelamin --}}
           @php
             $jkRaw  = old('jenis_kelamin', $peserta->jenis_kelamin);
-            $jkCode = $jkRaw;
-            if ($jkRaw === 'Laki-laki')  $jkCode = 'L';
-            if ($jkRaw === 'Perempuan')  $jkCode = 'P';
-            if (!in_array($jkCode, ['L','P'])) {
-              $jkCode = 'L';
-            }
+            $jkCode = $jkRaw === 'Laki-laki' ? 'L' : ($jkRaw === 'Perempuan' ? 'P' : $jkRaw);
+            if (!in_array($jkCode, ['L','P'])) $jkCode = 'L';
           @endphp
           <div>
             <label for="jenis_kelamin" class="block text-sm font-medium text-gray-700 mb-2">Jenis Kelamin</label>
@@ -111,8 +115,6 @@
             </select>
             @error('jenis_kelamin') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
-
-          {{-- Tanggal Daftar --}}
           <div>
             <label for="tanggal_daftar" class="block text-sm font-medium text-gray-700 mb-2">Tanggal Daftar</label>
             <input
@@ -125,8 +127,6 @@
             <p class="mt-1 text-xs text-gray-500">Biarkan seperti semula jika tidak ingin diubah.</p>
             @error('tanggal_daftar') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
-
-          {{-- Foto Profil --}}
           <div class="md:col-span-2">
             <label for="foto" class="block text-sm font-medium text-gray-700 mb-2">Foto Profil</label>
             <input
@@ -164,23 +164,30 @@
   </div>
 </div>
 
-{{-- UX kecil untuk input RFID --}}
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const rfidInput = document.getElementById('id_rfid');
+    const rfidInput    = document.getElementById('id_rfid');
+    const jadwalSelect = document.getElementById('jadwal_id');
+    const kelasInput   = document.getElementById('kelas');
 
     rfidInput?.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); return false; }
     });
-
     rfidInput?.addEventListener('input', function () {
       this.value = this.value.replace(/[\r\n]/g, '');
     });
-
     rfidInput?.addEventListener('change', function () {
       this.value = this.value.replace(/[\r\n]/g, '');
       document.getElementById('nama')?.focus();
     });
+
+    function syncKelas() {
+      const opt = jadwalSelect?.selectedOptions?.[0];
+      kelasInput.value = opt ? (opt.getAttribute('data-kelas') || '') : '';
+    }
+    syncKelas();
+
+    jadwalSelect?.addEventListener('change', syncKelas);
   });
 </script>
 @endsection

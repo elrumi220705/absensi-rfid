@@ -76,6 +76,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Kelamin</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Daftar</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Akun Siswa</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                             </tr>
                         </thead>
@@ -101,7 +102,9 @@
                                         {{ $p->id_rfid }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {{ $p->nama }}
+                                        <a href="{{ route('peserta.show', $p->id) }}" class="hover:underline">
+                                            {{ $p->nama }}
+                                        </a>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {{ $p->kelas ?? '—' }}
@@ -117,9 +120,30 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                         {{ optional($p->tanggal_daftar)->format('d-m-Y') ?? '—' }}
                                     </td>
+
+                                    {{-- Kolom Akun Siswa --}}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        @if($p->account)
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs">
+                                                <i class="ri-check-line mr-1"></i> {{ $p->account->login_id }}
+                                            </span>
+                                        @else
+                                            <form action="{{ route('siswa.account.store', $p->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="login_id" value="{{ $p->id_rfid }}">
+                                                <input type="hidden" name="password" value="123456"><!-- ganti kebijakan pw -->
+                                                <button type="submit"
+                                                        class="px-3 py-1 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700">
+                                                    Buat Akun
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </td>
+
+                                    {{-- Aksi --}}
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <a href="{{ route('peserta.edit', $p->id) }}"
-                                           class="text-blue-600 hover:text-blue-900 mr-3">
+                                           class="text-blue-600 hover:text-blue-900 mr-3" title="Edit">
                                             <i class="ri-edit-line w-4 h-4 inline"></i>
                                         </a>
                                         <form action="{{ route('peserta.destroy', $p->id) }}" method="POST" class="inline">
@@ -127,7 +151,8 @@
                                             @method('DELETE')
                                             <button type="submit"
                                                     class="text-red-600 hover:text-red-900 cursor-pointer"
-                                                    onclick="return confirm('Hapus murid ini?')">
+                                                    onclick="return confirm('Hapus murid ini?')"
+                                                    title="Hapus">
                                                 <i class="ri-delete-bin-line w-4 h-4 inline"></i>
                                             </button>
                                         </form>
@@ -135,7 +160,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-6 py-6 text-center text-sm text-gray-500">
+                                    <td colspan="9" class="px-6 py-6 text-center text-sm text-gray-500">
                                         Belum ada data murid.
                                     </td>
                                 </tr>

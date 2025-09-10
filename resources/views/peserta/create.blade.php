@@ -66,24 +66,41 @@
             @error('nama') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
 
-          {{-- Kelas (datalist) --}}
+          {{-- Jadwal Kelas --}}
+          {{-- Jadwal Kelas --}}
+<div>
+  <label for="jadwal_id" class="block text-sm font-medium text-gray-700 mb-2">Jadwal Kelas</label>
+  <select
+    id="jadwal_id"
+    name="jadwal_id"
+    required
+    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+  >
+    <option value="">Pilih Jadwal</option>
+    @foreach(($daftarJadwal ?? []) as $j)
+      {{-- controller sudah meng-alias nama_jadwal AS nama --}}
+      <option value="{{ $j->id }}" data-kelas="{{ $j->nama }}" {{ old('jadwal_id') == $j->id ? 'selected' : '' }}>
+        {{ $j->nama }}
+      </option>
+    @endforeach
+  </select>
+  @error('jadwal_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+  <p class="mt-1 text-xs text-gray-500">Ambil dari menu Jadwal.</p>
+</div>
+
+
+          {{-- Kelas (auto dari jadwal) --}}
           <div>
             <label for="kelas" class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
             <input
               type="text"
               id="kelas"
               name="kelas"
-              list="kelasList"
               value="{{ old('kelas') }}"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Contoh: VII-A, X IPA 1, dll"
+              readonly
+              class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 focus:outline-none"
+              placeholder="Akan terisi otomatis dari Jadwal"
             >
-            <datalist id="kelasList">
-              @foreach(($daftarKelas ?? []) as $kelas)
-                <option value="{{ $kelas }}"></option>
-              @endforeach
-            </datalist>
             @error('kelas') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
           </div>
 
@@ -148,23 +165,30 @@
   </div>
 </div>
 
-{{-- UX kecil untuk input RFID --}}
+{{-- UX kecil untuk input RFID & sinkron kelas dari jadwal --}}
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const rfidInput = document.getElementById('id_rfid');
+    const rfidInput    = document.getElementById('id_rfid');
+    const jadwalSelect = document.getElementById('jadwal_id');
+    const kelasInput   = document.getElementById('kelas');
 
     rfidInput.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); return false; }
     });
-
     rfidInput.addEventListener('input', function() {
       this.value = this.value.replace(/[\r\n]/g, '');
     });
-
     rfidInput.addEventListener('change', function() {
       this.value = this.value.replace(/[\r\n]/g, '');
       document.getElementById('nama')?.focus();
     });
+
+    function syncKelas() {
+      const opt = jadwalSelect.selectedOptions[0];
+      kelasInput.value = opt ? (opt.getAttribute('data-kelas') || '') : '';
+    }
+    jadwalSelect.addEventListener('change', syncKelas);
+    syncKelas(); // set awal (termasuk old() setelah validasi gagal)
   });
 </script>
 @endsection
