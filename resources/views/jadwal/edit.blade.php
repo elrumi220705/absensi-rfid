@@ -211,7 +211,7 @@
         <div class="md:col-span-5">
           <label class="md:hidden block text-xs font-medium text-gray-700 mb-1">Mata Pelajaran</label>
           <div class="relative">
-            <input name="mapel[]" placeholder="Contoh: Bahasa Indonesia" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <input name="mapel[]"  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
               <i class="ri-graduation-cap-line w-5 h-5 text-gray-400"></i>
             </div>

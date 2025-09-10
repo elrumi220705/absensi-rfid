@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SiswaAccount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\File;
 use Illuminate\Validation\ValidationException;
 
 class SiswaAuthController extends Controller
@@ -48,8 +50,7 @@ class SiswaAuthController extends Controller
     public function me(Request $request)
     {
         /** @var \App\Models\SiswaAccount $account */
-        $account = $request->user(); // karena SiswaAccount extends Authenticatable + HasApiTokens
-
+        $account = $request->user();
         $account->load('peserta');
 
         return response()->json([
@@ -73,6 +74,66 @@ class SiswaAuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()?->currentAccessToken()?->delete();
+        return response()->json(['ok' => true]);
+    }
+
+    // ====== PROFIL ======
+    public function updateProfile(Request $request)
+    {
+        /** @var \App\Models\SiswaAccount $account */
+        $account = $request->user();
+        $account->load('peserta');
+        $peserta = $account->peserta;
+
+        $data = $request->validate([
+            'nama'  => 'required|string|max:255',
+            'kelas' => 'nullable|string|max:50',
+            'foto'  => ['nullable', File::image()->max('2mb')],
+        ]);
+
+        $peserta->nama  = $data['nama'];
+        if (array_key_exists('kelas', $data)) {
+            $peserta->kelas = $data['kelas'];
+        }
+
+        if ($request->hasFile('foto')) {
+            if ($peserta->foto && \Storage::disk('public')->exists($peserta->foto)) {
+                \Storage::disk('public')->delete($peserta->foto);
+            }
+            $peserta->foto = $request->file('foto')->store('foto_peserta', 'public');
+        }
+
+        $peserta->save();
+
+        return response()->json([
+            'profile' => [
+                'id'       => $peserta->id,
+                'nama'     => $peserta->nama,
+                'kelas'    => $peserta->kelas,
+                'id_rfid'  => $peserta->id_rfid,
+                'foto_url' => method_exists($peserta, 'getFotoUrlAttribute') ? $peserta->foto_url : null,
+            ]
+        ]);
+    }
+
+    // ====== PASSWORD ======
+    public function changePassword(Request $request)
+    {
+        /** @var \App\Models\SiswaAccount $account */
+        $account = $request->user();
+
+        $data = $request->validate([
+            'current_password' => 'required|string',
+            'new_password'     => 'required|string|min:6|confirmed',
+        ]);
+
+        if (!Hash::check($data['current_password'], $account->password)) {
+            return response()->json(['message' => 'Password saat ini salah.'], 422);
+        }
+
+        $account->password = Hash::make($data['new_password']);
+        $account->save();
+
         return response()->json(['ok' => true]);
     }
 }
